@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <title>игра "4 в ряд"</title>
+	<link rel="shortcut icon" href="favicon.ico" />
+	<link href="css.css" rel="stylesheet">
+	
+	<!-- babel -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.25.0/babel.min.js"></script>	
+	<!-- react react-dom 16 -->
+	<script crossorigin src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
+	<script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+
+</head>
+<body>
+
+<p class="gamename">игра &#8220; Четыре в ряд &#8221;</p>
+
+<div id="game"></div>
+
+<script type="text/babel">
+//
+class Game extends React.Component {
+
+	constructor(props) {
+		super(props);
+
+		this.state = {
+			board: [],
+			player1: 'красные',
+			player2: 'желтые',
+			currentPlayer: this.player1,
+			gameOver: false,
+			notice: 'на старт'
+		};
+		this.play = this.play.bind(this);
+	}
+  
+  // 
+	startGameField() {
+		// Игровое поле 7 столбцов на 6 клеток высотой. 
+		let board = [];
+		for (let line = 0; line < 6; line++) {
+			let row = [];
+			for (let column = 0; column < 7; column++) { row.push(null) }
+			board.push(row);
+		}
+
+		this.setState({
+			board,//
+			currentPlayer: this.state.player1,
+			gameOver: false,
+			notice: 'игра началась'
+		});
+
+	}
+  
+	switchPlayer() {
+		if(this.state.currentPlayer === this.state.player1){
+			return this.state.player2;
+		}else{
+			return this.state.player1; 
+		}
+		return player;
+	}
+  
+  //
+	play(column) {
+		if (this.state.gameOver == false) {
+				let board = this.state.board; //
+			for (let line = 5; line >= 0; line--) {
+					if (!board[line][column]) {
+					board[line][column] = this.state.currentPlayer;
+					break;
+				}
+			}
+
+			//
+			let result = this.total(board);
+			
+			if (result === this.state.player1){
+				this.setState({ board, gameOver: true, notice: 'Победа красных' });
+				//console.info('красные');
+			} else if (result === this.state.player2) {
+				this.setState({ board, gameOver: true, notice: 'Победа желтых' });
+				//console.info('желтые');
+			} else if (result === 'completed'){
+				this.setState({ board, gameOver: true, notice: 'ничья' });
+				console.info('поле заполнено полнгстью');
+			} else {
+				this.setState({ board, currentPlayer: this.switchPlayer() });
+			}
+		} else {
+			this.setState({ notice: 'Игра завершена' });
+			}
+	}
+  
+	horizontal(board) {
+		for (let line = 0; line < 6; line++) {
+		for (let column = 0; column < 4; column++) {
+			if ( board[line][column] ) {
+				if (board[line][column] === board[line][column + 1] && 
+				board[line][column] === board[line][column + 2] &&
+				board[line][column] === board[line][column + 3]) {
+					return board[line][column];
+					}
+				}
+			}
+		}
+	}
+	
+	vertical(board) {
+		for (let line = 3; line < 6; line++) {
+			for (let column = 0; column < 7; column++) {
+			if (board[line][column]) {
+				if (board[line][column] === board[line - 1][column] &&
+				board[line][column] === board[line - 2][column] &&
+				board[line][column] === board[line - 3][column]) {
+					return board[line][column];    
+					}
+				}
+			}
+		}
+	}
+  
+	diagonalFromRightToLet(board) {
+		for (let line = 3; line < 6; line++) {
+			for (let column = 0; column < 4; column++) {
+				if (board[line][column]) {
+					if (board[line][column] === board[line - 1][column + 1] &&
+					board[line][column] === board[line - 2][column + 2] &&
+					board[line][column] === board[line - 3][column + 3]) {
+						return board[line][column];
+						//
+					}
+				}
+			}
+		}
+	}
+  
+	diagonalFromLeftToRight(board) {
+		for (let line = 3; line < 6; line++) {
+		for (let column = 3; column < 7; column++) {
+			if (board[line][column]) {
+				if (board[line][column] === board[line - 1][column - 1] &&
+				board[line][column] === board[line - 2][column - 2] &&
+				board[line][column] === board[line - 3][column - 3]) {
+					return board[line][column];
+					// );
+					}
+				}
+			}
+		}
+	}
+	
+	completedGameField(board){
+		for (let line = 0; line < 6; line++){
+			for (let column = 0; column < 7; column++){
+				if (board[line][column] === null){
+					return null;
+				}
+			}
+		}
+		return 'completed'; 
+	}
+	
+	total(board) {
+		return this.horizontal(board) || this.vertical(board) || this.diagonalFromLeftToRight(board) || this.diagonalFromRightToLet(board) || this.completedGameField(board);
+	}
+
+	componentWillMount() {
+		this.startGameField();
+	}
+	
+  render() {
+    return (
+      <div>
+        <p className="notice" onMouseEnter={()=>{console.info('начать новую игру?')}} onClick={() => {this.startGameField();console.info('поехали')}}>Новая игра</p>
+        
+		<p className="notice">статус: {this.state.notice}</p>
+		
+		<p className="notice">ходят: {this.state.currentPlayer}</p>
+		
+        <table>
+          <thead>
+          </thead>
+          <tbody>
+            {this.state.board.map((row, index) => (<Row key={index} row={row} play={this.play} />))}
+          </tbody>
+        </table>
+        
+      </div>
+    );
+  }
+}
+
+	const Row = ({ row, play }) => {
+		return (
+			<tr>
+				{row.map((cell, index) => <Cell key={index} value={cell} columnIndex={index} play={play} />)}
+			</tr>
+		);
+	};
+
+	const Cell = ({ value, columnIndex, play }) => {
+		let color = 'white';
+		if (value === 'красные') {
+			color = 'red';
+		} else if (value === 'желтые') {
+			color = 'yellow';
+		}
+
+	return (
+		<td>
+			<div className="cell" onClick={() => {play(columnIndex);/*console.info();*/}}>
+				<div className={color}></div>
+			</div>
+		</td>
+		);
+	};
+
+	ReactDOM.render(
+		<Game />, 
+		document.getElementById('game')
+	);
+	
+</script>
+
+</body>
+</html>
